@@ -1,7 +1,7 @@
 {
-  "name": "心靈導師法燈",
-  "short_name": "App",
-  "description": "心靈導師法燈",
+  "name": "阿拉燈心靈導師",
+  "short_name": "阿拉燈心靈導師",
+  "description": "阿拉燈心靈導師",
   "start_url": "/buddha/",
   "scope": "/buddha/",
   "display": "standalone",
@@ -14,8 +14,8 @@
   ],
   "shortcuts": [
     {
-      "name": "開啟 App",
-      "short_name": "App",
+      "name": "開啟 阿拉燈心靈導師",
+      "short_name": "阿拉燈心靈導師",
       "url": "/buddha/",
       "icons": [
         {
