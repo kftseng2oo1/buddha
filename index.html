@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-
-<title>法燈 · 佛法心靈導師</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>阿拉燈 · 佛法心靈導師</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -538,18 +538,6 @@ body::before {
 }
 .welcome-tag:active { background: rgba(200,168,75,0.15); color:var(--gold2); }
 </style>
-
-<!-- PWA Meta — auto-injected by PWA 打包神器 -->
-<meta name="application-name" content="阿拉燈心靈導師">
-<meta name="description" content="阿拉燈心靈導師">
-<meta name="theme-color" content="#1a73e8">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="阿拉燈心靈導師">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
-<script>if('serviceWorker'in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(r){console.log('[SW] registered:',r.scope)}).catch(function(e){console.warn('[SW] failed:',e)});});}</script>
 </head>
 <body>
 
@@ -580,10 +568,10 @@ body::before {
     <div class="header-inner">
       <div class="avatar-wrap">
         <div class="avatar-halo"></div>
-        <div class="avatar">🪷</div>
+        <div class="avatar">🪔</div>
       </div>
       <div class="header-info">
-        <div class="header-title" id="master-name-display">法燈導師</div>
+        <div class="header-title" id="master-name-display">阿拉燈導師</div>
         <div class="header-sub" id="master-sub-display">以佛法智慧 · 引導修行</div>
       </div>
       <div class="header-actions">
@@ -598,7 +586,7 @@ body::before {
     <div class="dharma-icon">🕯</div>
     <div class="dharma-text">
       <div class="dharma-label">今日法語</div>
-      <div class="dharma-quote" id="daily-quote">正在點燃法燈...</div>
+      <div class="dharma-quote" id="daily-quote">正在點亮油燈...</div>
       <div class="dharma-source" id="daily-source"></div>
     </div>
   </div>
@@ -620,7 +608,7 @@ body::before {
   <div id="input-area">
     <div class="input-row">
       <textarea id="user-input" placeholder="請問導師…" rows="1"></textarea>
-      <button id="send-btn">🪷</button>
+      <button id="send-btn">🪔</button>
     </div>
   </div>
 </div>
@@ -635,7 +623,7 @@ body::before {
     <div class="setting-group">
       <div class="setting-label">选择上师 / 法门</div>
       <div class="master-chips" id="master-chips">
-        <button class="master-chip active" data-key="general">🪷 通用佛法</button>
+        <button class="master-chip active" data-key="general">🪔 通用佛法</button>
         <button class="master-chip" data-key="theravada">🌿 南傳上座部</button>
         <button class="master-chip" data-key="zen">🎋 禪宗</button>
         <button class="master-chip" data-key="pureland">📿 淨土宗</button>
@@ -699,7 +687,7 @@ function saveCfg() {
 // ════════════════════════════════════════════════
 const MASTERS = {
   general: {
-    name: '法燈導師',
+    name: '阿拉燈導師',
     sub: '以佛法智慧 · 引導修行',
     system: `你是一位慈悲博學的佛法導師，精通三藏（經律論）。你以釋迦牟尼佛的教導為根本，融貫南傳、北傳與藏傳佛教智慧。
 
@@ -719,7 +707,7 @@ const MASTERS = {
 - 若涉及心理危機，請建議尋求專業協助
 
 【語氣】溫和如春風，但智慧犀利如劍。用繁體中文回應。`,
-    emoji: '🪷'
+    emoji: '🪔'
   },
   theravada: {
     name: '南傳禪師',
@@ -895,7 +883,7 @@ function addAIMsg(text) {
   // 處理典籍引用標記 [cite:...] 格式
   const html = formatAIText(text);
   row.innerHTML = `
-    <div class="msg-avatar">🪷</div>
+    <div class="msg-avatar">🪔</div>
     <div class="bubble ai">${html}</div>
   `;
   scroll.appendChild(row);
@@ -993,7 +981,7 @@ function addThinking() {
   row.className = 'thinking-row';
   row.id = 'thinking';
   row.innerHTML = `
-    <div class="msg-avatar">🪷</div>
+    <div class="msg-avatar">🪔</div>
     <div class="thinking-bubble">
       <span class="thinking-label">導師靜思中</span>
       <div class="dots">
@@ -1035,8 +1023,8 @@ async function callWorker(userMsg) {
   };
 
   const workerUrl = cfg.workerUrl.replace(/\/$/, '');
-  // twinklehub v8.1 的 Claude 路由
-  const endpoint = workerUrl + '/v1/messages';
+  // twinklehub v8.2 的 Claude 路由
+  const endpoint = workerUrl + '/claude';
 
   const res = await fetch(endpoint, {
     method: 'POST',
@@ -1136,7 +1124,7 @@ sendBtn.addEventListener('click', function() {
 // 每日法語點擊 → 依上師風格動態問句
 document.getElementById('daily-dharma').addEventListener('click', function() {
   const quote = document.getElementById('daily-quote').textContent;
-  if (!quote || quote === '正在點燃法燈...') return;
+  if (!quote || quote === '正在點亮油燈...') return;
 
   const masterKey = cfg.master;
   let prompt;
@@ -1227,9 +1215,9 @@ function renderWelcome() {
   w.id = 'welcome';
   w.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;min-height:280px;';
   w.innerHTML = `
-    <div style="font-size:56px;margin-bottom:18px;animation:lotus-breathe 4s ease-in-out infinite;">🪷</div>
+    <div style="font-size:56px;margin-bottom:18px;animation:lotus-breathe 4s ease-in-out infinite;">🪔</div>
     <div style="font-family:'Ma Shan Zheng',serif;font-size:26px;color:var(--gold2);letter-spacing:4px;margin-bottom:8px;">阿彌陀佛</div>
-    <div style="font-size:13px;color:var(--text3);letter-spacing:1px;line-height:1.8;margin-bottom:26px;">歡迎來到法燈修行道場<br>此處以佛陀教法為引導，與您共尋清淨</div>
+    <div style="font-size:13px;color:var(--text3);letter-spacing:1px;line-height:1.8;margin-bottom:26px;">歡迎來到阿拉燈道場<br>此處以佛陀教法為引導，與您共尋清淨</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px;">
       <div class="welcome-tag" onclick="quickSend('我感到煩惱與痛苦，如何解脫？')">🌊 解脫煩惱</div>
       <div class="welcome-tag" onclick="quickSend('如何在日常生活中修行？')">🧘 日常修行</div>
