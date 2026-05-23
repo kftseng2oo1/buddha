@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- 深墨底漸層 -->
+    <radialGradient id="bg" cx="50%" cy="45%" r="52%">
+      <stop offset="0%" stop-color="#1e1a10"/>
+      <stop offset="100%" stop-color="#0a0804"/>
+    </radialGradient>
+
+    <!-- 金色漸層（花瓣、框） -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#f0d878"/>
+      <stop offset="45%"  stop-color="#c8a84b"/>
+      <stop offset="100%" stop-color="#8a6820"/>
+    </linearGradient>
+
+    <!-- 燈火漸層 -->
+    <radialGradient id="flame" cx="50%" cy="70%" r="55%">
+      <stop offset="0%"   stop-color="#fff9e0"/>
+      <stop offset="35%"  stop-color="#ffd54f"/>
+      <stop offset="75%"  stop-color="#ff8f00"/>
+      <stop offset="100%" stop-color="#e65100" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 燈火光暈 -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#ffd54f" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffd54f" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 外圈光暈 -->
+    <radialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="60%"  stop-color="#c8a84b" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#c8a84b" stop-opacity="0.12"/>
+    </radialGradient>
+
+    <!-- 花瓣內側漸層（立體感） -->
+    <linearGradient id="petalShine" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%"   stop-color="#f5e098"/>
+      <stop offset="50%"  stop-color="#c8a84b"/>
+      <stop offset="100%" stop-color="#7a5c18"/>
+    </linearGradient>
+
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="flameGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ── 背景圓 ── -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg)"/>
+
+  <!-- ── 外圈金環光暈 ── -->
+  <circle cx="256" cy="256" r="256" fill="url(#outerGlow)"/>
+
+  <!-- ── 最外金圈（粗框） ── -->
+  <circle cx="256" cy="256" r="236" fill="none" stroke="url(#gold)" stroke-width="8" opacity="0.9"/>
+
+  <!-- ── 法輪齒紋（外圈小刻度，24個） ── -->
+  <g stroke="url(#gold)" stroke-width="3" opacity="0.55">
+    <!-- 24 個刻度，間距 15° -->
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(0   256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(15  256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(30  256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(45  256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(60  256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(75  256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(90  256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(105 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(120 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(135 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(150 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(165 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(180 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(195 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(210 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(225 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(240 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(255 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(270 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(285 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(300 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(315 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(330 256 256)"/>
+    <line x1="256" y1="22"  x2="256" y2="38"  transform="rotate(345 256 256)"/>
+  </g>
+
+  <!-- ── 內圈金線 ── -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- ══════════════════════════════════
+       八瓣蓮花（象徵八正道）
+       每瓣用橢圓旋轉 45° 倍數
+       花瓣中心在 256,256，橢圓長軸指向外
+  ══════════════════════════════════ -->
+  <g filter="url(#softGlow)">
+    <!-- 外層花瓣（較大，深金色） -->
+    <g opacity="0.82" fill="url(#gold)">
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(0   256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(45  256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(90  256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(135 256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(180 256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(225 256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(270 256 256)"/>
+      <ellipse cx="256" cy="163" rx="28" ry="72" transform="rotate(315 256 256)"/>
+    </g>
+
+    <!-- 內層花瓣（較小，亮金色，22.5° 偏移） -->
+    <g opacity="0.55" fill="url(#petalShine)">
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(22.5  256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(67.5  256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(112.5 256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(157.5 256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(202.5 256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(247.5 256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(292.5 256 256)"/>
+      <ellipse cx="256" cy="186" rx="16" ry="52" transform="rotate(337.5 256 256)"/>
+    </g>
+  </g>
+
+  <!-- ── 花心底座（圓形台座） ── -->
+  <circle cx="256" cy="256" r="68" fill="#0e0c08" opacity="0.95"/>
+  <circle cx="256" cy="256" r="68" fill="none" stroke="url(#gold)" stroke-width="2.5" opacity="0.8"/>
+
+  <!-- ── 燈台（底座） ── -->
+  <!-- 燈盤 -->
+  <ellipse cx="256" cy="285" rx="36" ry="9" fill="url(#gold)" opacity="0.85"/>
+  <!-- 燈柱 -->
+  <rect x="250" y="286" width="12" height="22" rx="3" fill="url(#gold)" opacity="0.7"/>
+  <!-- 燈底 -->
+  <ellipse cx="256" cy="308" rx="22" ry="6" fill="url(#gold)" opacity="0.75"/>
+
+  <!-- ── 燈火光暈（底層） ── -->
+  <ellipse cx="256" cy="268" rx="38" ry="38" fill="url(#glow)" filter="url(#flameGlow)" opacity="0.7"/>
+
+  <!-- ── 燈火（火焰形狀，三層） ── -->
+  <!-- 外焰 -->
+  <path d="M256,230 C248,245 238,255 240,268 C242,278 248,284 256,284 C264,284 270,278 272,268 C274,255 264,245 256,230 Z"
+        fill="url(#flame)" opacity="0.5"/>
+  <!-- 中焰 -->
+  <path d="M256,238 C251,249 245,258 247,268 C249,275 252,280 256,280 C260,280 263,275 265,268 C267,258 261,249 256,238 Z"
+        fill="url(#flame)" opacity="0.75"/>
+  <!-- 芯光（純白） -->
+  <ellipse cx="256" cy="272" rx="7" ry="9" fill="#fffde7" opacity="0.95"/>
+  <ellipse cx="256" cy="274" rx="3.5" ry="4" fill="#ffffff"/>
+
+  <!-- ── 外圈第二道金線（裝飾） ── -->
+  <circle cx="256" cy="256" r="228" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.25"/>
+
+  <!-- ── 四個菱形裝飾點（東南西北） ── -->
+  <g fill="url(#gold)" opacity="0.6">
+    <polygon points="256,46  262,52  256,58  250,52" />
+    <polygon points="256,454 262,460 256,466 250,460"/>
+    <polygon points="46,256  52,262  58,256  52,250" />
+    <polygon points="454,256 460,262 466,256 460,250"/>
+  </g>
+</svg>
