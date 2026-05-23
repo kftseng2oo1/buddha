@@ -1,6 +1,6 @@
-# 心靈導師法燈
+# 阿拉燈心靈導師
 
-> 心靈導師法燈
+> 阿拉燈心靈導師
 
 ## 📦 包含檔案
 
@@ -18,7 +18,7 @@
 ```bash
 git init
 git add .
-git commit -m "init: 心靈導師法燈 PWA"
+git commit -m "init: 阿拉燈心靈導師 PWA"
 git branch -M main
 git remote add origin https://github.com/<username>/<repo>.git
 git push -u origin main
