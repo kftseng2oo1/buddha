@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>阿拉燈 · 佛法心靈導師</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <style>
@@ -176,7 +174,43 @@ body::before {
 }
 .icon-btn:active { background: rgba(200,168,75,0.1); color: var(--gold); }
 
-/* ═══ 每日法語橫幅 ═══ */
+/* ═══ 每日反思摘要橫幅 ═══ */
+#summary-banner {
+  flex-shrink: 0;
+  margin: 0 16px 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(139,32,32,0.12), rgba(139,32,32,0.06));
+  border: 1px solid rgba(139,32,32,0.3);
+  border-radius: 10px;
+  display: none;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#summary-banner.show { display: flex; }
+#summary-banner:active { background: rgba(139,32,32,0.2); }
+.summary-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.summary-body { flex: 1; min-width: 0; }
+.summary-label { font-size: 10px; color: rgba(200,120,120,0.8); letter-spacing: 2px; margin-bottom: 3px; }
+.summary-trend { font-size: 12px; color: var(--cream2); line-height: 1.5; }
+.summary-encourage { font-size: 11px; color: var(--text3); margin-top: 3px; font-style: italic; }
+
+/* 記憶指示點（header 旁，有記憶時亮起）*/
+#memory-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px var(--gold);
+  display: none;
+  animation: dot-blink 2.5s ease-in-out infinite;
+  flex-shrink: 0;
+  align-self: center;
+}
+#memory-dot.show { display: block; }
+@keyframes dot-blink {
+  0%,100% { opacity: 0.4; } 50% { opacity: 1; }
+}
 #daily-dharma {
   flex-shrink: 0;
   margin: 10px 16px;
@@ -573,13 +607,26 @@ body::before {
         <div class="avatar">🪔</div>
       </div>
       <div class="header-info">
-        <div class="header-title" id="master-name-display">阿拉燈導師</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="header-title" id="master-name-display">阿拉燈導師</div>
+          <div id="memory-dot" title="導師記得你"></div>
+        </div>
         <div class="header-sub" id="master-sub-display">以佛法智慧 · 引導修行</div>
       </div>
       <div class="header-actions">
         <button class="icon-btn" id="clear-btn" title="清除對話">🗑</button>
         <button class="icon-btn" id="setting-btn" title="設定">⚙️</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 每日反思摘要（有資料才顯示）-->
+  <div id="summary-banner">
+    <div class="summary-icon">🌙</div>
+    <div class="summary-body">
+      <div class="summary-label">導師的觀察</div>
+      <div class="summary-trend" id="summary-trend"></div>
+      <div class="summary-encourage" id="summary-encourage"></div>
     </div>
   </div>
 
@@ -676,6 +723,63 @@ const DEFAULTS = {
 let cfg = Object.assign({}, DEFAULTS, loadCfg());
 let chatHistory = [];
 let isTyping = false;
+
+// ── 使用者識別（localStorage 持久化，不需登入）──
+function getUserId() {
+  let uid = localStorage.getItem('buddha_uid');
+  if (!uid) {
+    uid = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+    localStorage.setItem('buddha_uid', uid);
+  }
+  return uid;
+}
+const USER_ID = getUserId();
+
+// ── 長期記憶快取（從 Worker KV 讀取）──
+let userMemories = [];    // MemoryItem[]
+let dailySummary = null;  // DailySummary | null
+
+async function loadMemories() {
+  try {
+    const workerUrl = cfg.workerUrl.replace(/\/$/, '');
+    const res = await fetch(`${workerUrl}/memory/${USER_ID}`);
+    if (res.ok) {
+      const data = await res.json();
+      userMemories = data.memories || [];
+    }
+  } catch(e) { /* 靜默失敗，不影響主功能 */ }
+}
+
+async function loadDailySummary() {
+  try {
+    const workerUrl = cfg.workerUrl.replace(/\/$/, '');
+    const res = await fetch(`${workerUrl}/memory/${USER_ID}/summary`);
+    if (res.ok) {
+      const data = await res.json();
+      dailySummary = data.summary || null;
+      if (dailySummary) renderSummaryBanner();
+    }
+  } catch(e) { /* 靜默失敗 */ }
+}
+
+// 對話結束後非同步抽取記憶（不阻塞 UI）
+async function triggerMemoryExtract() {
+  if (chatHistory.length < 2) return;
+  try {
+    const workerUrl = cfg.workerUrl.replace(/\/$/, '');
+    await fetch(`${workerUrl}/memory/extract`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: USER_ID,
+        master: cfg.master,
+        messages: chatHistory.slice(-6),
+      }),
+    });
+    // 抽取後重新載入記憶，更新 context
+    await loadMemories();
+  } catch(e) { /* 靜默失敗 */ }
+}
 
 function loadCfg() {
   try { return JSON.parse(localStorage.getItem('buddha_cfg') || '{}'); } catch(e) { return {}; }
@@ -1004,15 +1108,45 @@ function scrollBottom() {
 }
 
 // ════════════════════════════════════════════════
-//  API 呼叫 (twinklehub worker v8.1)
+//  API 呼叫 (twinklehub worker v8.3)
 // ════════════════════════════════════════════════
 // 最多保留幾則對話（user+assistant 各算1，共保留最近 MAX_HISTORY 則）
 const MAX_HISTORY = 14;
 
+// 從記憶中挑出與當前訊息最相關的（簡單關鍵字比對）
+function pickRelevantMemories(userMsg, memories, maxCount = 3) {
+  if (!memories.length) return [];
+  const keywords = userMsg.replace(/[，。？！、]/g, ' ').split(/\s+/).filter(w => w.length >= 2);
+  const scored = memories.map(m => {
+    let score = m.importance || 5;
+    keywords.forEach(kw => {
+      if (m.summary.includes(kw))       score += 3;
+      if (m.emotional_tag.includes(kw)) score += 2;
+    });
+    return { ...m, _score: score };
+  });
+  return scored.sort((a,b) => b._score - a._score).slice(0, maxCount);
+}
+
 async function callWorker(userMsg) {
   const master = MASTERS[cfg.master] || MASTERS.general;
   const styleNote = STYLES[cfg.style] || '';
-  const systemPrompt = master.system + '\n\n' + styleNote;
+
+  // ── Context Assembly ──
+  const relevant = pickRelevantMemories(userMsg, userMemories);
+  let memContext = '';
+  if (relevant.length) {
+    memContext = '\n\n【你對這位修行者的長期記憶】\n' +
+      relevant.map(m => `• ${m.summary}（情緒：${m.emotional_tag}，重要度：${m.importance}/10）`).join('\n') +
+      '\n請在適當時機自然地呼應這些記憶，讓對方感受到被理解，但不要生硬地逐條列舉。';
+  }
+  if (dailySummary) {
+    memContext += `\n\n【今日修行觀察】\n情緒傾向：${dailySummary.emotional_trend}\n` +
+      (dailySummary.recurring_themes?.length ? `反覆主題：${dailySummary.recurring_themes.join('、')}\n` : '') +
+      `洞見：${dailySummary.insight}`;
+  }
+
+  const systemPrompt = master.system + '\n\n' + styleNote + memContext;
 
   // 先暫存，成功才正式 push（避免失敗後歷史髒掉）
   const historySnap = chatHistory.slice(-MAX_HISTORY).concat([{ role: 'user', content: userMsg }]);
@@ -1025,7 +1159,6 @@ async function callWorker(userMsg) {
   };
 
   const workerUrl = cfg.workerUrl.replace(/\/$/, '');
-  // twinklehub v8.2 的 Claude 路由
   const endpoint = workerUrl + '/claude';
 
   const res = await fetch(endpoint, {
@@ -1078,6 +1211,8 @@ async function sendMessage(text) {
     const reply = await callWorker(text);
     thinking.remove();
     addAIMsg(reply);
+    // 非同步抽取記憶，不阻塞 UI
+    triggerMemoryExtract();
   } catch (err) {
     thinking.remove();
     // 失敗：移除用戶泡泡 + 文字退回輸入框
@@ -1233,12 +1368,43 @@ function renderWelcome() {
   scroll.appendChild(w);
 }
 
+// ── 每日反思摘要橫幅 ──
+function renderSummaryBanner() {
+  if (!dailySummary) return;
+  const banner = document.getElementById('summary-banner');
+  document.getElementById('summary-trend').textContent =
+    `${dailySummary.emotional_trend}` +
+    (dailySummary.recurring_themes?.length ? `・${dailySummary.recurring_themes.join('、')}` : '');
+  document.getElementById('summary-encourage').textContent =
+    dailySummary.encouragement || dailySummary.insight || '';
+  banner.classList.add('show');
+
+  // 點擊展開詳情
+  banner.onclick = () => {
+    const detail = dailySummary.insight
+      ? `【今日洞見】${dailySummary.insight}`
+      : '';
+    if (detail) quickSend(`導師，您昨日觀察到「${dailySummary.emotional_trend}」，請進一步開示。`);
+  };
+}
+
+// ── 記憶指示點 ──
+function updateMemoryDot() {
+  const dot = document.getElementById('memory-dot');
+  if (userMemories.length > 0) dot.classList.add('show');
+  else dot.classList.remove('show');
+}
+
 // ════════════════════════════════════════════════
 //  初始化
 // ════════════════════════════════════════════════
 loadDailyQuote();
 applyMasterUI();
 renderWelcome();
+
+// 非同步載入記憶（不阻塞 UI）
+loadMemories().then(updateMemoryDot);
+loadDailySummary();
 </script>
 </body>
 </html>
