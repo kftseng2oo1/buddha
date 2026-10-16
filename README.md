@@ -1,44 +1,20 @@
-# 阿拉燈心靈導師
+# 🪔 阿拉燈 · 佛法心靈導師
 
-> 阿拉燈心靈導師
+以佛法為依據的 AI 對話導師，可選擇傳承與上師風格，並記得過去的對話重點。
 
-## 📦 包含檔案
+**線上使用**：https://kftseng2oo1.github.io/buddha/
 
-- `icon-192.png`
-- `icon-512.png`
-- `manifest.json`
-- `sw.js`
-- `index.html`
-- `icon.svg`
-- `icon-maskable.svg`
-- `offline.html`
+## 主要功能
+- 選擇傳承：通用佛法、南傳上座部、禪宗、淨土宗、藏傳佛教、聖嚴法師、星雲大師，或自訂上師
+- 選擇語氣：溫柔慈悲、嚴謹莊重、詩意禪意、實用務實
+- 快捷追問：📖 引用經典、🧘 修行方法、💬 說淺白些、🌱 日常應用、🔮 持續修持
+- 每日法語、對話記憶（自動擷取重點、每日摘要），下次對話會參考
+- 回答會附經典出處，並提醒以原典與真實師父為準
 
-## 🚀 部署到 GitHub Pages
+## 技術與依賴
+- 單檔 HTML PWA（`index.html` 內含全部 HTML/CSS/JS），`manifest.json` + `sw.js` 提供安裝到主畫面與離線快取。
+- AI：`claude-sonnet-4-20250514`，經 `twinklehub.kftseng2oo1.workers.dev` 的 `/claude` 代理；記憶也存在 Worker 端
+- 本機設定：`buddha_cfg`、`buddha_uid`
 
-```bash
-git init
-git add .
-git commit -m "init: 阿拉燈心靈導師 PWA"
-git branch -M main
-git remote add origin https://github.com/<username>/<repo>.git
-git push -u origin main
-```
-
-然後在 GitHub repo → **Settings → Pages** → Source 選 `main` 分支，等待幾分鐘後即可訪問。
-
-## 📱 安裝 PWA
-
-在支援的瀏覽器（Chrome / Edge / Safari iOS）中打開網頁，  
-點擊「**安裝**」或「**加入主畫面**」即可將此 App 安裝到裝置。
-
-## ⚙ 技術規格
-
-| 項目 | 值 |
-|------|-----|
-| display | standalone |
-| theme_color | #1a73e8 |
-| lang | zh-TW |
-| scope | /buddha/ |
-
----
-*由 [PWA 打包神器](https://github.com) 自動生成*
+## 相關 repo
+- [dama](https://github.com/kftseng2oo1/dama)：法身實相實修
