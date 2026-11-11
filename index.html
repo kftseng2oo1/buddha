@@ -1154,7 +1154,7 @@ async function callWorker(userMsg) {
   const historySnap = chatHistory.slice(-MAX_HISTORY).concat([{ role: 'user', content: userMsg }]);
 
   const payload = {
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1000,
     system: systemPrompt,
     messages: historySnap
