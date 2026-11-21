@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════
-//  Twinklehub · MCP + AI Hub  v8.5
+//  Twinklehub · MCP + AI Hub  v8.7
 //  twinklehub.kftseng2oo1.workers.dev
 //
 //  v8.5 新增 (RAG 精度優化):
@@ -191,7 +191,7 @@ export default {
         return jsonRes({
           status: 'ok',
           name: 'Twinklehub MCP + AI Hub',
-          version: '8.1',
+          version: '8.7',
           chat_ui: url.origin + '/',
           endpoints: {
             'GET  /':                    'Chat HTML(瀏覽器)or 健康檢查 JSON(API)',
@@ -218,7 +218,7 @@ export default {
       }
 
       if (path === '/health') {
-        return jsonRes({ status: 'ok', version: '8.1' });
+        return jsonRes({ status: 'ok', version: '8.7' });
       }
 
       // ── v8 新增:統一工具清單 ──
@@ -1115,7 +1115,7 @@ async function handleMcpRequest(request, env) {
       return mcpOk(id, {
         protocolVersion: '2024-11-05',
         capabilities: { tools: { listChanged: false }, resources: { subscribe: false } },
-        serverInfo: { name: 'twinklehub', version: '8.1' },
+        serverInfo: { name: 'twinklehub', version: '8.7' },
       });
     case 'tools/list':
       return mcpOk(id, { tools: MCP_TOOLS });
