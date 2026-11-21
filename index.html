@@ -278,6 +278,15 @@ body::before {
 }
 
 .ai-h { font-weight: 700; color: var(--gold, #d4af6a); margin: 10px 0 4px; letter-spacing: .05em; }
+.share-line-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px; padding: 6px 12px; border-radius: 999px;
+  background: rgba(6,199,85,0.10); border: 1px solid rgba(6,199,85,0.45);
+  color: #7fe3a5; font-size: 12px; font-family: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.share-line-btn:active { background: rgba(6,199,85,0.25); }
+.dharma-share { margin-top: 8px; }
 .bubble {
   max-width: calc(100% - 60px);
   padding: 12px 16px;
@@ -643,6 +652,7 @@ body::before {
       <div class="dharma-label">今日法語</div>
       <div class="dharma-quote" id="daily-quote">正在點亮油燈...</div>
       <div class="dharma-source" id="daily-source"></div>
+      <button class="share-line-btn dharma-share" id="dharma-share-btn" type="button">💬 分享到 LINE</button>
     </div>
   </div>
 
@@ -988,6 +998,24 @@ function addUserMsg(text) {
   return row; // 回傳 element，失敗時可移除
 }
 
+// ── 分享到 LINE ──
+const SHARE_URL = 'https://kftseng2oo1.github.io/buddha/';
+function plainForShare(t) {
+  return String(t)
+    .replace(/^#{1,4}\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/^>\s*/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+function shareToLine(text, withQuestion) {
+  let body = plainForShare(text);
+  if (body.length > 850) body = body.slice(0, 850).trim() + '…';
+  const msg = (withQuestion ? withQuestion + '\n\n' : '') + body +
+    '\n\n—— 阿拉燈導師 🪔\n' + SHARE_URL;
+  window.location.href = 'https://line.me/R/share?text=' + encodeURIComponent(msg);
+}
+
 function addAIMsg(text) {
   const scroll = document.getElementById('chat-scroll');
   const row = document.createElement('div');
@@ -998,10 +1026,26 @@ function addAIMsg(text) {
     <div class="msg-avatar">🪔</div>
     <div class="bubble ai">${html}</div>
   `;
+  // 分享到 LINE 按鈕
+  const lastUser = [...chatHistory].reverse().find(m => m.role === 'user');
+  const btn = document.createElement('button');
+  btn.className = 'share-line-btn';
+  btn.type = 'button';
+  btn.textContent = '💬 分享到 LINE';
+  btn.addEventListener('click', () => shareToLine(text, lastUser ? '🙏 我問：' + lastUser.content : ''));
+  if (!String(text).startsWith('⚠️')) row.querySelector('.bubble.ai').appendChild(btn);
   scroll.appendChild(row);
   scrollBottom();
   document.getElementById('quick-btns').classList.add('show');
 }
+
+document.addEventListener('click', e => {
+  if (e.target.closest && e.target.closest('#dharma-share-btn')) {
+    const q = document.getElementById('daily-quote').textContent.trim();
+    const src = document.getElementById('daily-source').textContent.trim();
+    shareToLine('🕯 今日法語\n\n' + q + (src ? '\n' + src : ''), '');
+  }
+});
 
 function formatAIText(rawText) {
   // 逐行處理，避免換行替換破壞區塊結構
