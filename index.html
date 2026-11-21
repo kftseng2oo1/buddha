@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
 <title>阿拉燈 · 佛法心靈導師</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <style>
@@ -672,7 +670,7 @@ body::before {
     <div class="modal-title">⚙ 道場設定</div>
 
     <div class="setting-group">
-      <div class="setting-label">选择上师 / 法门</div>
+      <div class="setting-label">選擇上師 / 法門</div>
       <div class="master-chips" id="master-chips">
         <button class="master-chip active" data-key="general">🪔 通用佛法</button>
         <button class="master-chip" data-key="theravada">🌿 南傳上座部</button>
@@ -1110,7 +1108,7 @@ function scrollBottom() {
 }
 
 // ════════════════════════════════════════════════
-//  API 呼叫 (twinklehub worker v8.3)
+//  API 呼叫 (twinklehub worker v8.6 · RAG 版)
 // ════════════════════════════════════════════════
 // 最多保留幾則對話（user+assistant 各算1，共保留最近 MAX_HISTORY 則）
 const MAX_HISTORY = 14;
@@ -1130,12 +1128,37 @@ function pickRelevantMemories(userMsg, memories, maxCount = 3) {
   return scored.sort((a,b) => b._score - a._score).slice(0, maxCount);
 }
 
+// ── RAG：語意搜尋相關典籍段落 ──
+async function queryWisdom(userMsg) {
+  try {
+    const wUrl = cfg.workerUrl.replace(/\/$/, '');
+    const res = await fetch(wUrl + '/rag/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query:     userMsg,
+        // 不限定傳承：所有典籍皆可參考（namespace 僅用於建檔分類）
+        tradition: undefined,
+        top_k:     3,
+      }),
+    });
+    if (!res.ok) return [];
+    const d = await res.json();
+    return d.matches || [];
+  } catch(e) { return []; }
+}
+
 async function callWorker(userMsg) {
   const master = MASTERS[cfg.master] || MASTERS.general;
   const styleNote = STYLES[cfg.style] || '';
 
-  // ── Context Assembly ──
-  const relevant = pickRelevantMemories(userMsg, userMemories);
+  // ── Context Assembly（並行取得記憶 + 典籍）──
+  const [relevant, wisdomMatches] = await Promise.all([
+    Promise.resolve(pickRelevantMemories(userMsg, userMemories)),
+    queryWisdom(userMsg),
+  ]);
+
+  // 長期記憶 context
   let memContext = '';
   if (relevant.length) {
     memContext = '\n\n【你對這位修行者的長期記憶】\n' +
@@ -1148,7 +1171,16 @@ async function callWorker(userMsg) {
       `洞見：${dailySummary.insight}`;
   }
 
-  const systemPrompt = master.system + '\n\n' + styleNote + memContext;
+  // RAG 典籍 context
+  let ragContext = '';
+  if (wisdomMatches.length) {
+    ragContext = '\n\n【智慧庫·相關典籍段落】\n以下是與當前問題語意相關的典籍原文，請在回應中自然引用（以「據《來源》」格式），不要逐字背誦：\n' +
+      wisdomMatches.map(m =>
+        `> 《${m.source}》${m.chapter ? '·' + m.chapter : ''}\n  ${m.text}`
+      ).join('\n\n');
+  }
+
+  const systemPrompt = master.system + '\n\n' + styleNote + memContext + ragContext;
 
   // 先暫存，成功才正式 push（避免失敗後歷史髒掉）
   const historySnap = chatHistory.slice(-MAX_HISTORY).concat([{ role: 'user', content: userMsg }]);
