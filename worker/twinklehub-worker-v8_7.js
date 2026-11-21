@@ -750,7 +750,11 @@ async function handleRagIndex(request, env) {
   try { vector = await getEmbedding(embedText, env); }
   catch(e) { return jsonRes({ error: 'Embedding failed: ' + e.message }, 500); }
 
-  const id = 'wisdom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  // v8.7：固定 ID（傳承＋來源＋章節＋原文的雜湊），重複建檔會覆蓋同一筆而非新增重複向量
+  const idBytes = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode([tradition, source, chapter, text].join('\u0001')));
+  const id = 'wisdom_' + [...new Uint8Array(idBytes)].slice(0, 12)
+    .map(b => b.toString(16).padStart(2, '0')).join('');
   const metadata = {
     text:            text.slice(0, 800),
     translation:     translation.slice(0, 300),
