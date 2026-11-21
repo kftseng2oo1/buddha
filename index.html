@@ -1049,7 +1049,13 @@ function formatAIText(rawText) {
     }
     // 一般行
     flushList();
-    out.push(line === '' ? '<br>' : inlineFormat(line));
+    if (line.trim() === '') {
+      // 標題後或連續空行不再多加換行，避免段落間距過大
+      const last = out[out.length - 1];
+      if (last && last !== '<br>' && !last.startsWith('<div class="ai-h">')) out.push('<br>');
+      return;
+    }
+    out.push(inlineFormat(line));
   });
   flushList();
 
