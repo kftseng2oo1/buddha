@@ -1,13 +1,13 @@
 {
   "name": "阿拉燈心靈導師",
-  "short_name": "阿拉燈心靈導師",
+  "short_name": "阿拉燈",
   "description": "阿拉燈心靈導師",
   "start_url": "/buddha/",
   "scope": "/buddha/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#1a73e8",
-  "background_color": "#ffffff",
+  "theme_color": "#0e0c08",
+  "background_color": "#0e0c08",
   "lang": "zh-TW",
   "categories": [
     "utilities"
@@ -15,7 +15,7 @@
   "shortcuts": [
     {
       "name": "開啟 阿拉燈心靈導師",
-      "short_name": "阿拉燈心靈導師",
+      "short_name": "阿拉燈",
       "url": "/buddha/",
       "icons": [
         {
@@ -27,18 +27,6 @@
   ],
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    },
-    {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
@@ -48,7 +36,19 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
