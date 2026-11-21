@@ -1210,7 +1210,15 @@ async function callWorker(userMsg) {
   }
 
   const data = await res.json();
-  const reply = data.content?.[0]?.text || '（未收到回應）';
+  // 新模型可能先回傳 thinking 區塊，因此合併所有 text 區塊，而非只取第一個
+  const reply = (Array.isArray(data.content) ? data.content : [])
+    .filter(b => b && b.type === 'text' && b.text)
+    .map(b => b.text).join('\n\n').trim();
+  if (!reply) {
+    const why = data.error?.message || ('stop_reason=' + (data.stop_reason || '?')
+      + ', blocks=' + (Array.isArray(data.content) ? data.content.map(b => b.type).join(',') : 'none'));
+    throw new Error('模型沒有回傳文字（' + why + '）：' + JSON.stringify(data).slice(0, 160));
+  }
 
   // 成功才寫入歷史，並截斷
   chatHistory.push({ role: 'user', content: userMsg });
