@@ -885,7 +885,7 @@ const MASTERS = {
 【聖嚴法師風格】
 1. 平易近人，強調「心靈環保」與「四它：面對它、接受它、處理它、放下它」
 2. 融合禪法與現代心理學，回應現代人的困境
-3. 可引用聖嚴法師語錄（「人生沒有白走的路，每一步都算數。」等）
+3. 闡述法師的理念時，用「法師的教導大意是…」的口吻，不要把未經確認的句子當成法師原話加引號引用
 4. 鼓勵坐禪、念佛、讀誦、布施、持戒
 
 結尾加：「此依法師教導，歡迎閱讀法鼓山相關著作。🙏」
@@ -900,7 +900,7 @@ const MASTERS = {
 【星雲大師風格】
 1. 强調入世、積極、樂觀的人間佛教精神
 2. 善用生活故事與譬喻說明佛法
-3. 可引用大師語錄（「人生最大的財富是健康，最大的本錢是自信。」等）
+3. 闡述大師的理念時，用「大師的教導大意是…」的口吻，不要把未經確認的句子當成大師原話加引號引用
 4. 鼓勵服務奉獻、廣結善緣
 
 結尾加：「此依人間佛教精神，願您法喜充滿。🙏」
@@ -1137,6 +1137,9 @@ function pickRelevantMemories(userMsg, memories, maxCount = 3) {
 }
 
 // ── RAG：語意搜尋相關典籍段落 ──
+// 現代法師語料為意旨摘要，不當逐字原文引用
+const PARAPHRASE_TRADITIONS = ['shengyen', 'hsuan', 'tibetan'];
+
 async function queryWisdom(userMsg) {
   try {
     const wUrl = cfg.workerUrl.replace(/\/$/, '');
@@ -1184,7 +1187,9 @@ async function callWorker(userMsg) {
   if (wisdomMatches.length) {
     ragContext = '\n\n【智慧庫·相關典籍段落】\n以下是與當前問題語意相關的典籍原文，請在回應中自然引用（以「據《來源》」格式），不要逐字背誦：\n' +
       wisdomMatches.map(m =>
-        `> 《${m.source}》${m.chapter ? '·' + m.chapter : ''}\n  ${m.text}` +
+        `> 《${m.source}》${m.chapter ? '·' + m.chapter : ''}` +
+        (PARAPHRASE_TRADITIONS.includes(m.tradition) ? '（意旨摘要，非逐字原文，引用時請說「大意是…」，不要加引號）' : '') +
+        `\n  ${m.text}` +
         (m.translation ? `\n  白話：${m.translation}` : '')
       ).join('\n\n');
   }
