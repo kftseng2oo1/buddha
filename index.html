@@ -1010,10 +1010,45 @@ function plainForShare(t) {
 }
 function shareToLine(text, withQuestion) {
   let body = plainForShare(text);
-  if (body.length > 850) body = body.slice(0, 850).trim() + '…';
+  if (body.length > 400) body = body.slice(0, 400).trim() + '…';
   const msg = (withQuestion ? withQuestion + '\n\n' : '') + body +
     '\n\n—— 阿拉燈導師 🪔\n' + SHARE_URL;
   window.location.href = 'https://line.me/R/share?text=' + encodeURIComponent(msg);
+}
+
+// 本地備援摘要：取前幾句，約 110 字
+function localSummary(text) {
+  const t = plainForShare(text).replace(/\n+/g, ' ');
+  if (t.length <= 110) return t;
+  const cut = t.slice(0, 110);
+  const i = Math.max(cut.lastIndexOf('。'), cut.lastIndexOf('！'), cut.lastIndexOf('？'));
+  return (i > 40 ? cut.slice(0, i + 1) : cut) + (i > 40 ? '' : '…');
+}
+
+// 以 Claude 濃縮成 80–120 字摘要；失敗則用本地備援
+async function summarizeForShare(text) {
+  try {
+    const wUrl = cfg.workerUrl.replace(/\/$/, '');
+    const res = await fetch(wUrl + '/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-5-5',
+        max_tokens: 400,
+        system: '你是文字編輯。把使用者提供的佛法導師回覆，濃縮成 80 到 120 字的分享摘要：' +
+          '保留最核心的一至兩個重點，若原文引用經典，保留經名；語氣溫暖，繁體中文，' +
+          '純文字，不要標題、條列、引號開場白，也不要加入原文沒有的經文或語錄。只輸出摘要本身。',
+        messages: [{ role: 'user', content: plainForShare(text).slice(0, 3000) }],
+      }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const out = (Array.isArray(d.content) ? d.content : [])
+      .filter(b => b && b.type === 'text' && b.text).map(b => b.text).join('').trim();
+    return out || localSummary(text);
+  } catch (e) {
+    return localSummary(text);
+  }
 }
 
 function addAIMsg(text) {
@@ -1027,12 +1062,24 @@ function addAIMsg(text) {
     <div class="bubble ai">${html}</div>
   `;
   // 分享到 LINE 按鈕
-  const lastUser = [...chatHistory].reverse().find(m => m.role === 'user');
   const btn = document.createElement('button');
   btn.className = 'share-line-btn';
   btn.type = 'button';
   btn.textContent = '💬 分享到 LINE';
-  btn.addEventListener('click', () => shareToLine(text, lastUser ? '🙏 我問：' + lastUser.content : ''));
+  let cachedSummary = null;
+  btn.addEventListener('click', async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = '✨ 整理摘要中…';
+    try {
+      if (!cachedSummary) cachedSummary = await summarizeForShare(text);
+      shareToLine(cachedSummary, '');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = old;
+    }
+  });
   if (!String(text).startsWith('⚠️')) row.querySelector('.bubble.ai').appendChild(btn);
   scroll.appendChild(row);
   scrollBottom();
