@@ -279,7 +279,7 @@ body::before {
 
 .ai-h { font-weight: 700; color: var(--gold, #d4af6a); margin: 10px 0 4px; letter-spacing: .05em; }
 .share-line-btn {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: flex; width: fit-content; align-items: center; gap: 6px;
   margin-top: 10px; padding: 6px 12px; border-radius: 999px;
   background: rgba(6,199,85,0.10); border: 1px solid rgba(6,199,85,0.45);
   color: #7fe3a5; font-size: 12px; font-family: inherit; cursor: pointer;
@@ -1019,10 +1019,12 @@ function shareToLine(text, withQuestion) {
 // 本地備援摘要：取前幾句，約 110 字
 function localSummary(text) {
   const t = plainForShare(text).replace(/\n+/g, ' ');
-  if (t.length <= 110) return t;
-  const cut = t.slice(0, 110);
-  const i = Math.max(cut.lastIndexOf('。'), cut.lastIndexOf('！'), cut.lastIndexOf('？'));
-  return (i > 40 ? cut.slice(0, i + 1) : cut) + (i > 40 ? '' : '…');
+  const sents = (t.match(/[^。！？]+[。！？]?/g) || [t]).map(x => x.trim()).filter(x => x.length > 6);
+  if (!sents.length) return t.slice(0, 110);
+  const pick = sents.slice(0, 4).map(x => x.length > 40 ? x.slice(0, 40) + '…' : x);
+  const nums = ['1️⃣', '2️⃣', '3️⃣'];
+  return '🪔 ' + pick[0] + '\n\n✨ 重點\n' +
+    pick.slice(1, 4).map((x, k) => nums[k] + ' ' + x).join('\n');
 }
 
 // 以 Claude 濃縮成 80–120 字摘要；失敗則用本地備援
@@ -1034,10 +1036,19 @@ async function summarizeForShare(text) {
       headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: 'claude-haiku-5-5',
-        max_tokens: 400,
-        system: '你是文字編輯。把使用者提供的佛法導師回覆，濃縮成 80 到 120 字的分享摘要：' +
-          '保留最核心的一至兩個重點，若原文引用經典，保留經名；語氣溫暖，繁體中文，' +
-          '純文字，不要標題、條列、引號開場白，也不要加入原文沒有的經文或語錄。只輸出摘要本身。',
+        max_tokens: 500,
+        system: '你是文字編輯。把使用者提供的佛法導師回覆，整理成適合在 LINE 分享的簡短摘要。' +
+          '必須嚴格使用下列版型（純文字，每一行都要換行，區塊之間空一行）：\n' +
+          '🪔 一句話總結（25 字內）\n' +
+          '\n' +
+          '✨ 重點\n' +
+          '1️⃣ 第一個重點（30 字內）\n' +
+          '2️⃣ 第二個重點（30 字內）\n' +
+          '3️⃣ 第三個重點（30 字內，沒有就省略）\n' +
+          '\n' +
+          '🌱 今天可以試試：一個具體的小練習（30 字內；原文沒有練習就整行省略）\n' +
+          '規則：全文不超過 180 字；不要使用 #、*、- 等 Markdown 符號，也不要用引號開場白；' +
+          '若原文引用經典，在相關重點裡保留《經名》；不要加入原文沒有的經文、語錄或內容；只輸出摘要本身。',
         messages: [{ role: 'user', content: plainForShare(text).slice(0, 3000) }],
       }),
     });
