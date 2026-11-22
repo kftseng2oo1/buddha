@@ -1100,16 +1100,26 @@ function formatAIText(rawText) {
   const out = [];
   let listType = null; // 'ul' | 'ol' | null
   let listBuf = [];
+  let listStart = 1;
 
   function flushList() {
     if (!listType) return;
     const tag = listType;
-    out.push(`<${tag} class="ai-list">${listBuf.map(li => `<li>${li}</li>`).join('')}</${tag}>`);
+    const startAttr = (tag === 'ol' && listStart !== 1) ? ` start="${listStart}"` : '';
+    out.push(`<${tag} class="ai-list"${startAttr}>${listBuf.map(li => `<li>${li}</li>`).join('')}</${tag}>`);
     listBuf = [];
     listType = null;
+    listStart = 1;
   }
 
-  lines.forEach(line => {
+  const isListLine = l => /^([\*\-•]|\d+[.）])\s+\S/.test(l);
+
+  lines.forEach((line, idx) => {
+    // 清單項目之間的空行不要打斷清單（否則有序清單每項都會重新從 1 開始）
+    if (listType && line.trim() === '') {
+      const next = lines.slice(idx + 1).find(l => l.trim() !== '');
+      if (next && isListLine(next)) return;
+    }
     // 典籍引用 > ...──出處
     const citeM = line.match(/^>\s*(.+)$/);
     if (citeM) {
@@ -1139,6 +1149,7 @@ function formatAIText(rawText) {
     const olM = line.match(/^\d+[.）]\s+(.+)$/);
     if (olM) {
       if (listType === 'ul') flushList();
+      if (listType !== 'ol') listStart = parseInt(line, 10) || 1;
       listType = 'ol';
       listBuf.push(inlineFormat(olM[1]));
       return;
