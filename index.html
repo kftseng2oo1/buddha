@@ -287,6 +287,17 @@ body::before {
 }
 .share-line-btn:active { background: rgba(6,199,85,0.25); }
 .dharma-share { margin-top: 8px; }
+/* 今日法語卡片分享 */
+#card-modal { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px; padding: 16px; background: rgba(0,0,0,.82); }
+#card-modal.show { display: flex; }
+#card-modal img { max-width: min(92vw, 420px); max-height: 68vh; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#card-modal .card-tip { color: #cbb98a; font-size: 12px; letter-spacing: 1px; text-align: center; }
+#card-modal .card-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+#card-modal .card-actions button, #card-modal .card-actions a { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-family: inherit;
+  border: 1px solid rgba(200,168,75,.5); background: rgba(200,168,75,.12); color: #e6cf8a; text-decoration: none; cursor: pointer; }
+#card-modal .card-actions .line { border-color: rgba(6,199,85,.55); background: rgba(6,199,85,.14); color: #8ff0b3; }
+
 .bubble {
   max-width: calc(100% - 60px);
   padding: 12px 16px;
@@ -652,7 +663,7 @@ body::before {
       <div class="dharma-label">今日法語</div>
       <div class="dharma-quote" id="daily-quote">正在點亮油燈...</div>
       <div class="dharma-source" id="daily-source"></div>
-      <button class="share-line-btn dharma-share" id="dharma-share-btn" type="button">💬 分享到 LINE</button>
+      <button class="share-line-btn dharma-share" id="dharma-share-btn" type="button">💬 分享卡片到 LINE</button>
     </div>
   </div>
 
@@ -1190,11 +1201,155 @@ function addAIMsg(text) {
   document.getElementById('quick-btns').classList.add('show');
 }
 
+
+// ════════════════════════════════════════════════
+//  今日法語：精緻卡片（Canvas 產圖 → 系統分享）
+// ════════════════════════════════════════════════
+function wrapCJK(ctx, text, maxW) {
+  const NO_START = '，。、；：！？」』）》〉…,.;:!?)';
+  const lines = []; let cur = '';
+  for (const ch of text) {
+    if (ch === '\n') { lines.push(cur); cur = ''; continue; }
+    if (cur && ctx.measureText(cur + ch).width > maxW && !NO_START.includes(ch)) { lines.push(cur); cur = ch; }
+    else cur += ch;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function renderDharmaCard(quote, source) {
+  const W = 1080, H = 1350;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  const SERIF = "'Songti TC','Noto Serif TC','Source Han Serif TC','PMingLiU','STSong',serif";
+  const GOLD = '#d4b15a', GOLD_DIM = 'rgba(212,177,90,.55)', CREAM = '#f1e6c8';
+
+  // 背景
+  const bg = c.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#1d160b'); bg.addColorStop(.55, '#120e07'); bg.addColorStop(1, '#0b0905');
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  const glow = c.createRadialGradient(W/2, 250, 20, W/2, 250, 560);
+  glow.addColorStop(0, 'rgba(255,196,90,.30)'); glow.addColorStop(.5, 'rgba(255,170,60,.08)'); glow.addColorStop(1, 'rgba(255,170,60,0)');
+  c.fillStyle = glow; c.fillRect(0, 0, W, H);
+  // 細微星點
+  const rnd = (function(seed){ return function(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; })(7);
+  for (let i = 0; i < 70; i++) {
+    c.fillStyle = 'rgba(255,225,160,' + (0.08 + rnd() * 0.18).toFixed(2) + ')';
+    c.beginPath(); c.arc(rnd() * W, rnd() * H, 0.8 + rnd() * 1.6, 0, 7); c.fill();
+  }
+
+  // 雙層邊框
+  function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+  c.strokeStyle = 'rgba(212,177,90,.55)'; c.lineWidth = 2; rr(40, 40, W - 80, H - 80, 28); c.stroke();
+  c.strokeStyle = 'rgba(212,177,90,.22)'; c.lineWidth = 1; rr(58, 58, W - 116, H - 116, 20); c.stroke();
+
+  // 油燈（向量繪製）
+  const cx = W / 2, cy = 232;
+  const fl = c.createRadialGradient(cx, cy - 20, 4, cx, cy - 20, 150);
+  fl.addColorStop(0, 'rgba(255,214,120,.55)'); fl.addColorStop(1, 'rgba(255,214,120,0)');
+  c.fillStyle = fl; c.fillRect(cx - 170, cy - 190, 340, 340);
+  c.beginPath(); c.moveTo(cx, cy - 92); c.bezierCurveTo(cx + 40, cy - 40, cx + 34, cy + 2, cx, cy + 6);
+  c.bezierCurveTo(cx - 34, cy + 2, cx - 40, cy - 40, cx, cy - 92); c.closePath();
+  const fg = c.createLinearGradient(0, cy - 92, 0, cy + 6); fg.addColorStop(0, '#fff3c4'); fg.addColorStop(.6, '#ffc857'); fg.addColorStop(1, '#f08a24');
+  c.fillStyle = fg; c.fill();
+  c.strokeStyle = GOLD; c.lineWidth = 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(cx - 64, cy + 18); c.quadraticCurveTo(cx - 54, cy + 62, cx, cy + 66); c.quadraticCurveTo(cx + 54, cy + 62, cx + 64, cy + 18); c.stroke();
+  c.beginPath(); c.moveTo(cx - 74, cy + 18); c.lineTo(cx + 74, cy + 18); c.stroke();
+  c.beginPath(); c.moveTo(cx - 30, cy + 78); c.lineTo(cx + 30, cy + 78); c.stroke();
+
+  // 標題與日期
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillStyle = GOLD; c.font = "600 44px " + SERIF;
+  if ('letterSpacing' in c) c.letterSpacing = '14px';
+  c.fillText('今日法語', cx + 7, 388);
+  if ('letterSpacing' in c) c.letterSpacing = '4px';
+  const d = new Date(), wk = '日一二三四五六'[d.getDay()];
+  c.fillStyle = GOLD_DIM; c.font = "28px " + SERIF;
+  c.fillText(d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0') + '  週' + wk, cx + 2, 438);
+  if ('letterSpacing' in c) c.letterSpacing = '0px';
+
+  // 分隔飾線
+  function ornament(y) {
+    c.strokeStyle = GOLD_DIM; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(cx - 190, y); c.lineTo(cx - 24, y); c.moveTo(cx + 24, y); c.lineTo(cx + 190, y); c.stroke();
+    c.fillStyle = GOLD; c.beginPath(); c.moveTo(cx, y - 9); c.lineTo(cx + 9, y); c.lineTo(cx, y + 9); c.lineTo(cx - 9, y); c.closePath(); c.fill();
+  }
+  ornament(490);
+
+  // 法語本文：依長度決定字級
+  const n = quote.length;
+  const fs = n <= 16 ? 76 : n <= 28 ? 70 : n <= 44 ? 58 : n <= 64 ? 50 : 44;
+  c.font = '600 ' + fs + 'px ' + SERIF;
+  const lines = wrapCJK(c, quote, 800);
+  const lh = Math.round(fs * 1.85);
+  const areaTop = 540, areaBot = 1090, blockH = lines.length * lh;
+  let y = areaTop + Math.max(0, (areaBot - areaTop - blockH) / 2) + fs;
+  c.fillStyle = CREAM;
+  c.shadowColor = 'rgba(255,190,80,.25)'; c.shadowBlur = 18;
+  lines.forEach(l => { c.fillText(l, cx, y); y += lh; });
+  c.shadowBlur = 0;
+
+  // 出處
+  c.fillStyle = GOLD; c.font = "34px " + SERIF;
+  if ('letterSpacing' in c) c.letterSpacing = '3px';
+  c.fillText('—— ' + source.replace(/^─+\s*/, ''), cx, Math.min(y + 30, 1120));
+  if ('letterSpacing' in c) c.letterSpacing = '0px';
+
+  // 頁尾
+  ornament(1166);
+  c.fillStyle = GOLD; c.font = "600 36px " + SERIF;
+  if ('letterSpacing' in c) c.letterSpacing = '8px';
+  c.fillText('阿拉燈導師', cx + 4, 1224);
+  if ('letterSpacing' in c) c.letterSpacing = '1px';
+  c.fillStyle = 'rgba(212,177,90,.5)'; c.font = "24px sans-serif";
+  c.fillText('kftseng2oo1.github.io/buddha', cx, 1262);
+  return cv;
+}
+
+let _cardBlob = null, _cardUrl = '', _cardText = '';
+function canvasToBlob(cv) { return new Promise(res => cv.toBlob(res, 'image/png')); }
+
+async function shareDharmaCard() {
+  const btn = document.getElementById('dharma-share-btn');
+  const q = document.getElementById('daily-quote').textContent.trim();
+  const src = document.getElementById('daily-source').textContent.trim();
+  if (!q || q === '正在點亮油燈...') return;
+  const old = btn.textContent; btn.textContent = '✨ 製作卡片中…'; btn.disabled = true;
+  try {
+    try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+    const blob = await canvasToBlob(renderDharmaCard(q, src));
+    if (!blob) throw new Error('canvas');
+    _cardBlob = blob; _cardText = '🕯 今日法語\n\n' + q + (src ? '\n' + src : '');
+    const file = new File([blob], '今日法語.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; /* 其他錯誤 → 改用預覽 */ }
+    }
+    openCardModal();
+  } catch (e) {
+    shareToLine(_cardText || ('🕯 今日法語\n\n' + q + (src ? '\n' + src : '')), '');
+  } finally { btn.textContent = old; btn.disabled = false; }
+}
+function openCardModal() {
+  if (_cardUrl) URL.revokeObjectURL(_cardUrl);
+  _cardUrl = URL.createObjectURL(_cardBlob);
+  document.getElementById('card-img').src = _cardUrl;
+  document.getElementById('card-download').href = _cardUrl;
+  document.getElementById('card-modal').classList.add('show');
+}
+document.getElementById('card-close').addEventListener('click', () => document.getElementById('card-modal').classList.remove('show'));
+document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id === 'card-modal') e.target.classList.remove('show'); });
+document.getElementById('card-share-text').addEventListener('click', () => shareToLine(_cardText, ''));
+document.getElementById('card-share-img').addEventListener('click', async () => {
+  try {
+    const f = new File([_cardBlob], '今日法語.png', { type: 'image/png' });
+    if (navigator.share) await navigator.share({ files: [f] });
+  } catch (e) {}
+});
+
 document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('#dharma-share-btn')) {
-    const q = document.getElementById('daily-quote').textContent.trim();
-    const src = document.getElementById('daily-source').textContent.trim();
-    shareToLine('🕯 今日法語\n\n' + q + (src ? '\n' + src : ''), '');
+    shareDharmaCard();
   }
 });
 
@@ -1567,7 +1722,8 @@ sendBtn.addEventListener('click', function() {
 });
 
 // 每日法語點擊 → 依上師風格動態問句
-document.getElementById('daily-dharma').addEventListener('click', function() {
+document.getElementById('daily-dharma').addEventListener('click', function(ev) {
+  if (ev.target.closest && ev.target.closest('#dharma-share-btn')) return;
   const quote = document.getElementById('daily-quote').textContent;
   if (!quote || quote === '正在點亮油燈...') return;
 
@@ -1717,5 +1873,15 @@ loadDailySummary();
 <script>
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
 </script>
+<div id="card-modal" role="dialog" aria-label="今日法語卡片">
+  <img id="card-img" alt="今日法語卡片">
+  <div class="card-tip">長按圖片可儲存，或用下方按鈕分享</div>
+  <div class="card-actions">
+    <button type="button" id="card-share-img">📤 分享圖片</button>
+    <a id="card-download" download="今日法語.png">⬇ 儲存</a>
+    <button type="button" class="line" id="card-share-text">💬 以文字分享到 LINE</button>
+    <button type="button" id="card-close">關閉</button>
+  </div>
+</div>
 </body>
 </html>
