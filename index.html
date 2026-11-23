@@ -1287,6 +1287,27 @@ async function queryWisdom(userMsg) {
   } catch(e) { return []; }
 }
 
+
+// ════════════════════════════════════════════════
+//  安全回應：自傷／輕生訊號
+// ════════════════════════════════════════════════
+const CRISIS_RE = /(想死|不想活|活不下去|不想再活|自殺|輕生|尋死|結束(自己的)?生命|了結(自己|生命)|想消失|消失就好|傷害自己|自殘|割腕|跳樓|上吊|吞藥|撐不下去|活著(好)?(沒|沒有)意思|活著好累)/;
+function detectCrisis(text) { return CRISIS_RE.test(text || ''); }
+
+const SAFETY_PROMPT = '【安全原則】你是修行陪伴者，不是醫師或心理師。若對方談到想傷害自己、不想活或極度絕望，' +
+  '請先以溫和、不評斷的語氣接住他的感受，不要說教，也不要用「業力」「因果」解釋他的痛苦；' +
+  '鼓勵他聯繫身邊可信任的人與專業協助。對於疾病、藥物、法律等專業問題，請說明這超出你的角色，建議諮詢專業人員。';
+const CRISIS_PROMPT = '【本次對話偵測到可能的自傷或輕生訊號】請只做三件事：' +
+  '(1) 用簡短、溫暖的話回應他的感受，讓他知道你在聽；(2) 輕輕詢問他現在是否安全、身邊有沒有可以陪伴的人；' +
+  '(3) 鼓勵他現在就聯絡專業協助（專線資訊會由系統附在回覆後，你不必重複寫電話）。' +
+  '回應要短，不要引用經文、不要講大道理、不要給修行功課。';
+const CRISIS_FOOTER = '\n\n---\n🤍 **如果你現在很痛苦，請不要一個人撐著：**\n' +
+  '- 安心專線 **1925**（24 小時，免費）\n' +
+  '- 生命線 **1995**\n' +
+  '- 張老師 **1980**\n' +
+  '- 若有立即危險，請撥 **119** 或 **110**，或請身邊的人陪你去急診。\n' +
+  '我只是一個修行陪伴的小工具，無法取代真人的協助。';
+
 async function callWorker(userMsg) {
   const master = MASTERS[cfg.master] || MASTERS.general;
   const styleNote = STYLES[cfg.style] || '';
@@ -1326,7 +1347,9 @@ async function callWorker(userMsg) {
     '若不確定出處，請不要加引號與來源，改用自己的話說明。絕對不要編造法師語錄或經文。' +
     (wisdomMatches.length ? '' : '本次沒有檢索到相關典籍，請直接以自己的話回應。');
 
-  const systemPrompt = master.system + '\n\n' + styleNote + memContext + ragContext;
+  const crisis = detectCrisis(userMsg);
+  const systemPrompt = master.system + '\n\n' + styleNote + memContext + ragContext +
+    '\n\n' + SAFETY_PROMPT + (crisis ? '\n\n' + CRISIS_PROMPT : '');
 
   // 先暫存，成功才正式 push（避免失敗後歷史髒掉）
   const historySnap = chatHistory.slice(-MAX_HISTORY).concat([{ role: 'user', content: userMsg }]);
@@ -1368,6 +1391,8 @@ async function callWorker(userMsg) {
   }
 
   if (truncated) reply += '\n\n（回覆因長度被截斷，可輸入「請繼續」接著說。）';
+  // 偵測到自傷／輕生訊號：固定附上專線資訊（不依賴模型是否記得）
+  if (crisis) reply += CRISIS_FOOTER;
   // 成功才寫入歷史，並截斷
   chatHistory.push({ role: 'user', content: userMsg });
   chatHistory.push({ role: 'assistant', content: reply });
