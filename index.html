@@ -736,6 +736,16 @@ body::before {
   </div>
 </div>
 
+<div id="card-modal" role="dialog" aria-label="今日法語卡片">
+  <img id="card-img" alt="今日法語卡片">
+  <div class="card-tip">長按圖片可儲存，或用下方按鈕分享</div>
+  <div class="card-actions">
+    <button type="button" id="card-share-img">📤 分享圖片</button>
+    <a id="card-download" download="今日法語.png">⬇ 儲存</a>
+    <button type="button" class="line" id="card-share-text">💬 以文字分享到 LINE</button>
+    <button type="button" id="card-close">關閉</button>
+  </div>
+</div>
 <script>
 // ════════════════════════════════════════════════
 //  設定管理
@@ -1337,7 +1347,7 @@ function openCardModal() {
   document.getElementById('card-download').href = _cardUrl;
   document.getElementById('card-modal').classList.add('show');
 }
-document.getElementById('card-close').addEventListener('click', () => document.getElementById('card-modal').classList.remove('show'));
+(document.getElementById('card-close')||document.body).addEventListener('click', () => document.getElementById('card-modal').classList.remove('show'));
 document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id === 'card-modal') e.target.classList.remove('show'); });
 document.getElementById('card-share-text').addEventListener('click', () => shareToLine(_cardText, ''));
 document.getElementById('card-share-img').addEventListener('click', async () => {
@@ -1873,15 +1883,5 @@ loadDailySummary();
 <script>
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
 </script>
-<div id="card-modal" role="dialog" aria-label="今日法語卡片">
-  <img id="card-img" alt="今日法語卡片">
-  <div class="card-tip">長按圖片可儲存，或用下方按鈕分享</div>
-  <div class="card-actions">
-    <button type="button" id="card-share-img">📤 分享圖片</button>
-    <a id="card-download" download="今日法語.png">⬇ 儲存</a>
-    <button type="button" class="line" id="card-share-text">💬 以文字分享到 LINE</button>
-    <button type="button" id="card-close">關閉</button>
-  </div>
-</div>
 </body>
 </html>
