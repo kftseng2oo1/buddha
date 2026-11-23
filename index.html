@@ -1177,7 +1177,11 @@ function formatAIText(rawText) {
   });
   flushList();
 
-  return out.join('\n').replace(/\n(<br>)+\n/g, '<br>').replace(/\n/g, '<br>');
+  return out.join('\n').replace(/\n(<br>)+\n/g, '<br>').replace(/\n/g, '<br>')
+    // 區塊元素（標題/清單）前後不再多塞換行，避免空隙過大
+    .replace(/(<br>)+(<div class="ai-h">)/g, '$2')
+    .replace(/(<\/div>)(<br>)+/g, '$1')
+    .replace(/(<\/(?:ul|ol)>)(<br>)+/g, '$1');
 }
 
 // 行內格式：先處理 Markdown 再 escHtml，順序正確不互相干擾
